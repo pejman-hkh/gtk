@@ -5,6 +5,12 @@ This is an idea that we can develope it.
 
 Now this is for gtk and after that we can write a class for qt and change our class name to our name and use that in gtk and qt and another windows manager kit ...
 
+Compile it : 
+
+```cli
+g++ -std=c++11 `pkg-config --cflags gtk+-3.0` main.cpp -o hello `pkg-config --libs gtk+-3.0`
+```
+
 Simple usage :
 
 ```c++
