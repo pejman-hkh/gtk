@@ -14,33 +14,60 @@ g++ -std=c++11 `pkg-config --cflags gtk+-3.0` main.cpp -o hello `pkg-config --li
 Simple usage :
 
 ```c++
-    Gtk window;
-    window.init( &argc, &argv ).set_title( "test ast" ).set_size( 200, 200 );
+    static Gtk window;
+    window.init( &argc, &argv ).set_title( "test ast" ).set_size( 500, 100 );
 
+    //window.body( "", )
+    //window.load_html("index.html");
+    
     //window.html("<button id='button_id' class='test'>Test ast</button>");
-
-    window.button("Test ast",  std::map <std::string, std::string> { 
-        { "class", "foo" }, 
-        { "id", "button_id" },
+    
+    typedef std::map <std::string, std::string> attr;
+    
+    window.label("Result : ",  attr { 
+        { "class", "label" }, 
+        { "id", "result" },
     } );
+        
+    window.br();
+    
+    window.label("Username : ",  attr { 
+        { "class", "label" }, 
+        { "id", "label1" },
+    });
 
 
-    window.button("Test ast11111",  std::map <std::string, std::string> { 
-        { "class", "foo" }, 
-        { "id", "button_id1" },
-    } );
-
+    window.input("username... ",  attr { 
+        { "class", "input" }, 
+        { "id", "username" },
+    });
+    
     window.br();
 
-    window.button("Test ffdasd",  std::map <std::string, std::string> { 
+    window.label("Password : ",  attr { 
+        { "class", "label" }, 
+        { "id", "label2" },
+    });
+
+    window.input("password... ",  attr { 
+        { "class", "input" }, 
+        { "id", "password" },
+    });
+
+
+    
+    window.button("Login",  attr { 
         { "class", "foo" }, 
-        { "id", "button_id2" },
-    } );
-
-
-
+        { "id", "button_id" },
+    });
+    
     window("#button_id").onclick([]() {
-        std::cout << "test" << std::endl;
-});
+        std::cout << " button id clicked " << std::endl;
+        std::cout << window("#username").val() << std::endl;
+        std::cout << window("#password").val() << std::endl;
+        
+        window("#result").val( "username : "+ window("#username").val()+" password : "+window("#password").val() );
+        
+    });
 
 ```
