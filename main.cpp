@@ -28,10 +28,8 @@ extern "C" {
                 gtk_container_add (GTK_CONTAINER (_window), _fixed);
                 gtk_widget_show (_fixed);
 
-                _xp = 0;
-                _yp = 0;
-                _max_yp = 0;
-                
+                _xp, _yp, _max_yp = 0;
+ 
                 return *this;
             }
 
@@ -61,6 +59,7 @@ extern "C" {
                 _object = gtk_button_new_with_label ( str.c_str() );
 
                 _ids[ id ] = _object;
+                _types[ id ] = "button";
 
                 _create_widget();
     
@@ -81,7 +80,8 @@ extern "C" {
                 _object = gtk_label_new ( str.c_str() );
 
                 _ids[ id ] = _object;
-
+                _types[ id ] = "label";
+                
                 _create_widget();
 
             }
@@ -95,7 +95,8 @@ extern "C" {
                 gtk_entry_set_text ( GTK_ENTRY (_object), str.c_str() );
                 
                 _ids[ id ] = _object;
-
+                _types[ id ] = "input";
+                
                 _create_widget();
                 
                 
@@ -103,14 +104,19 @@ extern "C" {
             
             Gtk &val( std::string str ) {
                 
-                gtk_entry_set_text ( GTK_ENTRY ( this->_ids[ this->_selector ] ), str.c_str() );
+                if( _types[ _selector ] == "input" ) {
+                    gtk_entry_set_text ( GTK_ENTRY ( this->_ids[ this->_selector ] ), str.c_str() );
+                } else if( _types[ _selector ] == "label" ) {
+                    gtk_label_set_text( GTK_LABEL( this->_ids[ this->_selector ] ), str.c_str() );
+                }
                 
                 return *this;
             }
             
-            const gchar *val() {
+            std::string val() {
                 const gchar *text = gtk_entry_get_text( GTK_ENTRY( this->_ids[ this->_selector ] ) );
-                return text;
+                std::string ret = text;
+                return ret;
             }
             
             void html( std::string str ) {
@@ -150,11 +156,12 @@ extern "C" {
 
             }
             
-            gint _xp, _yp, _max_yp = 0;
+            gint _xp, _yp, _max_yp;
             GtkWidget * _window;
             GtkWidget * _object;
             GtkWidget * _fixed;
             std::map<std::string, GtkWidget*> _ids;
+            std::map<std::string, std::string> _types;
             
             std::string _selector;
            
@@ -165,56 +172,61 @@ extern "C" {
 int main (int argc, char *argv[])
 {
     static Gtk window;
-    window.init( &argc, &argv ).set_title( "test ast" ).set_size( 500, 500 );
+    window.init( &argc, &argv ).set_title( "test ast" ).set_size( 300, 100 );
 
     //window.body( "", )
     //window.load_html("index.html");
     
     //window.html("<button id='button_id' class='test'>Test ast</button>");
-
-    window.label("Username : ",  std::map <std::string, std::string> { 
+    
+    typedef std::map <std::string, std::string> attr;
+    
+    window.label("Result : ",  attr { 
+        { "class", "label" }, 
+        { "id", "result" },
+    } );
+        
+    window.br();
+    
+    window.label("Username : ",  attr { 
         { "class", "label" }, 
         { "id", "label1" },
-    } );
+    });
 
 
-    window.input("username... ",  std::map <std::string, std::string> { 
+    window.input("username... ",  attr { 
         { "class", "input" }, 
-        { "id", "input1" },
-    } );
+        { "id", "username" },
+    });
+    
+    window.br();
+
+    window.label("Password : ",  attr { 
+        { "class", "label" }, 
+        { "id", "label2" },
+    });
+
+    window.input("password... ",  attr { 
+        { "class", "input" }, 
+        { "id", "password" },
+    });
 
 
     
-    window.button("Test ast",  std::map <std::string, std::string> { 
+    window.button("Login",  attr { 
         { "class", "foo" }, 
         { "id", "button_id" },
-    } );
-    
-    window.br();
-   
-    window.button("Test ast11111",  std::map <std::string, std::string> { 
-        { "class", "foo" }, 
-        { "id", "button_id1" },
-    } );
- 
-    window.br();
-
-    window.button("Test ffdasd",  std::map <std::string, std::string> { 
-        { "class", "foo" }, 
-        { "id", "button_id2" },
-    } );
-
+    });
     
     window("#button_id").onclick([]() {
         std::cout << " button id clicked " << std::endl;
-        std::cout << window("#input1").val() << std::endl;
-        window("#input1").val("test ast");
+        std::cout << window("#username").val() << std::endl;
+        std::cout << window("#password").val() << std::endl;
+        
+        window("#result").val( "username : "+ window("#username").val()+" password : "+window("#password").val() );
+        
     });
     
-
-    window("#button_id1").onclick([]() {
-        std::cout << " button id 1 clicked " << std::endl;
-    });
 
     return 0;
 }
