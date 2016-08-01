@@ -3,8 +3,19 @@
 #include <map>
 #include <string>
 #include <regex>
+#include <functional>
+
+using namespace std;
 
 extern "C" {
+    
+    
+    struct _size {
+        int width;
+        int height;
+    };
+    
+    typedef void(*CallbackFunctionPtr)();
 
     class Gtk {
         public:
@@ -12,9 +23,15 @@ extern "C" {
                 gtk_init(argc, argv);   
                 _window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
                 g_signal_connect( _window, "destroy", G_CALLBACK(gtk_main_quit), NULL );
-                
-                _grid = gtk_grid_new ();
 
+                _fixed = gtk_fixed_new ();
+                gtk_container_add (GTK_CONTAINER (_window), _fixed);
+                gtk_widget_show (_fixed);
+
+                _xp = 0;
+                _yp = 0;
+                _max_yp = 0;
+                
                 return *this;
             }
 
@@ -37,82 +54,149 @@ extern "C" {
                 return *this;
             }
 
-            std::string button( std::string str, std::map <std::string, std::string> attr ) {
+            void button( std::string str, std::map <std::string, std::string> attr ) {
 
                 std::string id = "#"+attr["id"];
 
-                this->_object = gtk_button_new_with_label ( str.c_str() );
+                _object = gtk_button_new_with_label ( str.c_str() );
 
-                this->_ids[ id ] = _object;
+                _ids[ id ] = _object;
 
-                return id;
+                _create_widget();
+    
             }
 
-            void onclick( void(*callback)() ) {
+            void clicked( CallbackFunctionPtr callback ) {
+                cout << "test" << endl;
+            }
+            
+            void onclick( CallbackFunctionPtr callback ) {
                 g_signal_connect (this->_ids[ this->_selector ], "clicked",  G_CALLBACK( callback ), NULL);
             }
 
 
-            void label( std::string str ) {
-                GtkWidget *label = gtk_label_new( str.c_str() );
-                gtk_container_add(GTK_CONTAINER(_window), label);
+            void label( std::string str, std::map <std::string, std::string> attr ) {
+                std::string id = "#"+attr["id"];
+
+                _object = gtk_label_new ( str.c_str() );
+
+                _ids[ id ] = _object;
+
+                _create_widget();
+
             }
 
+            void input ( std::string str, std::map <std::string, std::string> attr ) {
+
+                std::string id = "#"+attr["id"];
+
+                _object = gtk_entry_new ();
+
+                gtk_entry_set_text ( GTK_ENTRY (_object), str.c_str() );
+                
+                _ids[ id ] = _object;
+
+                _create_widget();
+                
+                
+            }
+            
+            Gtk &val( std::string str ) {
+                
+                gtk_entry_set_text ( GTK_ENTRY ( this->_ids[ this->_selector ] ), str.c_str() );
+                
+                return *this;
+            }
+            
+            const gchar *val() {
+                const gchar *text = gtk_entry_get_text( GTK_ENTRY( this->_ids[ this->_selector ] ) );
+                return text;
+            }
+            
             void html( std::string str ) {
 
             }
 
             void br() {
-                _i = 0;
-                _grid = gtk_grid_new ();
+                _yp += _max_yp;
+                _xp = 0;
             }
 
             ~Gtk() {
-                gtk_container_add(GTK_CONTAINER(_window), _grid);
 
-               // std::cout << _br << std::endl;
-
-                for( auto const &x : _ids ) {
-                    gtk_grid_attach (GTK_GRID (_grid),  x.second, _i, 0, 1, 1);
-                    ++_i;
-                }
-
-                gtk_widget_show_all(_window);
+                gtk_widget_show (_window);
+                
                 gtk_main();
             }
 
         
         private:
+            
+            void _create_widget() {
+             
+                gtk_fixed_put (GTK_FIXED (_fixed), _object, this->_xp, this->_yp );
+                
+                gtk_widget_show( _object );
+     
+                gint w1, w2;
+                gtk_widget_get_preferred_width( _object, &w1, &w2 );
+                
+                gint h1, h2;
+                gtk_widget_get_preferred_height( _object, &h1, &h2 );
+
+                this->_xp += w2;
+
+                _max_yp = h2;
+
+            }
+            
+            gint _xp, _yp, _max_yp = 0;
             GtkWidget * _window;
             GtkWidget * _object;
-            GtkWidget * _grid;
+            GtkWidget * _fixed;
             std::map<std::string, GtkWidget*> _ids;
+            
             std::string _selector;
-
-            int _i = 1;
-
+           
     };
 }
 
 
 int main (int argc, char *argv[])
 {
-    Gtk window;
-    window.init( &argc, &argv ).set_title( "test ast" ).set_size( 200, 200 );
+    static Gtk window;
+    window.init( &argc, &argv ).set_title( "test ast" ).set_size( 500, 500 );
 
+    //window.body( "", )
+    //window.load_html("index.html");
+    
     //window.html("<button id='button_id' class='test'>Test ast</button>");
 
+    window.label("Username : ",  std::map <std::string, std::string> { 
+        { "class", "label" }, 
+        { "id", "label1" },
+    } );
+
+
+    window.input("username... ",  std::map <std::string, std::string> { 
+        { "class", "input" }, 
+        { "id", "input1" },
+    } );
+
+
+    
     window.button("Test ast",  std::map <std::string, std::string> { 
         { "class", "foo" }, 
         { "id", "button_id" },
     } );
-
-
+    
+    window.br();
+   
     window.button("Test ast11111",  std::map <std::string, std::string> { 
         { "class", "foo" }, 
         { "id", "button_id1" },
     } );
-
+ 
     window.br();
 
     window.button("Test ffdasd",  std::map <std::string, std::string> { 
@@ -120,10 +204,16 @@ int main (int argc, char *argv[])
         { "id", "button_id2" },
     } );
 
-
-
+    
     window("#button_id").onclick([]() {
-        std::cout << "test" << std::endl;
+        std::cout << " button id clicked " << std::endl;
+        std::cout << window("#input1").val() << std::endl;
+        window("#input1").val("test ast");
+    });
+    
+
+    window("#button_id1").onclick([]() {
+        std::cout << " button id 1 clicked " << std::endl;
     });
 
     return 0;
