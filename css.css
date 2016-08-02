@@ -1,0 +1,31 @@
+ GtkWindow {                         
+   background-color: white;
+   margin:10px;
+}
+
+
+ #button_id {                         
+   -GtkWidget-focus-line-width: 0;
+   font: Sans 12px;
+   background-color: blue;
+   color: black;           
+   border-style: outset;
+   padding: 6px;
+   margin-left:10px;
+}
+
+GtkEntry {
+ padding:10px;   
+}
+
+GtkLabel {
+    padding-top:5px;
+    padding-left:5px;
+}
+
+GtkTextView {
+ padding-left:10px;
+ margin-top:10px;
+ position:absolute;
+ top:20px;
+}
