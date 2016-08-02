@@ -15,7 +15,7 @@ Simple usage :
 
 ```c++
     static Gtk window;
-    window.init( &argc, &argv ).set_title( "test ast" ).set_size( 500, 100 );
+    window.init( &argc, &argv ).set_title( "test ast" ).set_size( 500, 150 );
 
     //window.body( "", )
     //window.load_html("index.html");
@@ -24,10 +24,18 @@ Simple usage :
     
     typedef std::map <std::string, std::string> attr;
     
-    window.label("Result : ",  attr { 
+    //load css
+    window.link( attr {
+        { "href", "css.css" },
+    });
+    
+    window.text("Result : asddddddddddddddddddd ",  attr { 
         { "class", "label" }, 
         { "id", "result" },
     } );
+    
+
+    //window("#result").html("test ast");
         
     window.br();
     
@@ -66,7 +74,7 @@ Simple usage :
         std::cout << window("#username").val() << std::endl;
         std::cout << window("#password").val() << std::endl;
         
-        window("#result").val( "username : "+ window("#username").val()+" password : "+window("#password").val() );
+        window("#result").html( "username : "+ window("#username").val()+" password : "+window("#password").val() );
         
     });
 
